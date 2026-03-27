@@ -42,7 +42,7 @@ def route_to_voice_sms(request_id: str, agent_name: str, task_metadata: str, act
     print(f"| Τηλέφωνο Επικοινωνίας: {phone}")
 
     # ΔΗΜΙΟΥΡΓΙΑ ΤΟΥ ΠΛΗΡΟΥΣ ΜΗΝΥΜΑΤΟΣ 
-    voice_message = f"Προσοχή. Ειδοποίηση από το σύστημα {agent_name}. Δεδομένα αιτήματος: {task_metadata}. Προτεινόμενη ενέργεια: {action}. Πατήστε το 1 για έγκριση, ή το 2 για απόρριψη."
+    voice_message = f"Warning. Notification from system {agent_name}. System data: {task_metadata}. Suggested action: {action}. Press 1 for approval or 2 for rejection."
 
     # Περνάμε το ID, το URL ΚΑΙ το μήνυμα στην κλήση!
     success = trigger_escalation_call(request_id, RAILWAY_PUBLIC_URL, voice_message)
