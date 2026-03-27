@@ -1,6 +1,5 @@
 from gateway.channels.teams import send_teams_alert
-# Αν φτιάξετε και αρχείο για SMS/Twilio, θα το κάνετε import εδώ:
-# from gateway.channels.sms import send_critical_sms
+from gateway.channels.phone import trigger_escalation_call
 
 def route_to_chat(request_id: str, agent_name: str, action: str):
     """
@@ -25,9 +24,11 @@ def route_to_voice_sms(request_id: str, agent_name: str, action: str):
     print(f"\n[ROUTER -> SMS/VOICE] ⚠️ Αποστολή CRITICAL Alert (Κλήση/SMS).")
     print(f"| Request ID: {request_id}")
     print(f"| Agent: {agent_name} | Κρίσιμη Ενέργεια: {action}")
-    
-    # Για το Hackathon MVP, αν δεν προλάβετε να βάλετε Twilio/Azure Communication Services,
-    # είναι αποδεκτό αυτό να μείνει ως mock (απλό print) ή να το στέλνει και αυτό στο Teams 
-    # με ένδειξη "URGENT". 
-    #
-    # Αν έχετε συνάρτηση: send_critical_sms(request_id, agent_name, action)re
+
+    try:
+        trigger_escalation_call()
+        print("[ROUTER] Η κλήση escalation ξεκίνησε επιτυχώς.")
+    except Exception as e:
+        print(f"[ROUTER ERROR] Αποτυχία voice escalation: {e}")
+        print("[ROUTER] Fallback σε Teams για να μη χαθεί το critical request.")
+        send_teams_alert(request_id, agent_name, f"[CRITICAL FALLBACK] {action}")

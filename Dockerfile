@@ -16,12 +16,13 @@ COPY ./requirements.txt /code/requirements.txt
 # --no-cache-dir keeps the image size down by not storing the pip cache
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-# Copy the application code into the container
-# This assumes your FastAPI app is inside the "app" folder
-COPY ./app /code/app
+# Copy the gateway application code into the container
+# Αλλάξαμε το ./app σε ./gateway για να ταιριάζει με τη νέα δομή
+COPY ./gateway /code/gateway
 
 # Expose the port that Uvicorn will run on
 EXPOSE 8000
 
 # Command to run the FastAPI application using Uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Αλλάξαμε το app.main:app σε gateway.main:app
+CMD ["uvicorn", "gateway.main:app", "--host", "0.0.0.0", "--port", "8000"]

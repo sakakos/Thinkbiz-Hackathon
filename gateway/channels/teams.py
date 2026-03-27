@@ -6,6 +6,8 @@ def send_teams_alert(request_id: str, agent_name: str, action: str):
     Δημιουργεί και στέλνει μια Adaptive Card στο Microsoft Teams.
     """
     webhook_url = os.getenv("TEAMS_WEBHOOK_URL")
+    gateway_base_url = os.getenv("GATEWAY_BASE_URL", "http://localhost:8000").rstrip("/")
+    human_response_url = f"{gateway_base_url}/api/v1/human-response"
     
     if not webhook_url:
         print(f"[TEAMS MOCK] 🔔 Ειδοποίηση για {agent_name}: {action} (Δεν βρέθηκε Webhook URL)")
@@ -48,7 +50,7 @@ def send_teams_alert(request_id: str, agent_name: str, action: str):
                             "type": "Action.Http",
                             "title": "✅ Έγκριση",
                             "method": "POST",
-                            "url": "https://ΤΟ_URL_ΤΟΥ_GATEWAY_ΣΟΥ/api/v1/human-response",
+                            "url": human_response_url,
                             "body": f'{{"request_id": "{request_id}", "decision": "approve", "feedback": ""}}',
                             "headers": [{"name": "Content-Type", "value": "application/json"}]
                         },
@@ -56,7 +58,7 @@ def send_teams_alert(request_id: str, agent_name: str, action: str):
                             "type": "Action.Http",
                             "title": "❌ Απόρριψη",
                             "method": "POST",
-                            "url": "https://ΤΟ_URL_ΤΟΥ_GATEWAY_ΣΟΥ/api/v1/human-response",
+                            "url": human_response_url,
                             "body": f'{{"request_id": "{request_id}", "decision": "deny", "feedback": ""}}',
                             "headers": [{"name": "Content-Type", "value": "application/json"}]
                         }
