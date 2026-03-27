@@ -1,14 +1,8 @@
-# Use an official Python runtime as a parent image
-# 3.11-slim is a great balance of modern features and small size
-FROM python:3.11-slim
-
+FROM python:3.11-slim AS base
 # Prevent Python from writing pyc files to disc and keep stdout unbuffered
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# MongoDB config (set MONGODB_URI at runtime with -e or docker compose)
-ENV MONGODB_DB_NAME=hitl
-ENV MONGODB_OPERATORS_COLLECTION=operators
 
 # Set the working directory in the container
 WORKDIR /code
@@ -30,3 +24,10 @@ EXPOSE 8000
 # Command to run the FastAPI application using Uvicorn
 # Αλλάξαμε το app.main:app σε gateway.main:app
 CMD ["uvicorn", "gateway.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# --- STAGE 2: Agent UI (Streamlit) ---
+FROM base AS agent-ui
+# Αντιγράφουμε το αρχείο του UI (πρέπει να είναι στον κεντρικό φάκελο)
+COPY agent_ui.py .
+EXPOSE 8501
+CMD ["streamlit", "run", "agent_ui.py", "--server.port=8501", "--server.address=0.0.0.0"]
