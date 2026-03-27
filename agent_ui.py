@@ -11,9 +11,9 @@ st.markdown("""
     /* Reduce top padding of the main container */
     .block-container {padding-top: 1rem; padding-bottom: 0rem;}
     
-    /* Make text areas and inputs shorter */
-    .stTextArea textarea {height: 70px !important;}
-    .stTextInput input {height: 35px !important;}
+    /* Custom heights for text areas and inputs */
+    .stTextArea textarea {height: 100px !important;} /* Ελαφρώς μεγαλύτερο και το text area αν θες */
+    .stTextInput input {height: 45px !important;}   /* ΑΥΞΗΘΗΚΕ ΤΟ ΥΨΟΣ ΕΔΩ */
     
     /* Tighten margins between elements */
     .element-container {margin-bottom: 0.2rem !important;}
@@ -44,13 +44,13 @@ with st.form("agent_request_form"):
         callback_url = st.text_input("Agent Callback URL", value="https://webhook.site/your-id")
     
     # Row 2: Target Operator
-    operator_name = st.text_input("Target Department ID", value="it_dept")
+    operator_name = st.text_input("Target Department", value="Cybersecurity Department")
     
     # Row 3: Proposed Action (Back to original order)
-    proposed_action = st.text_input("Proposed Action", value="Shutdown the 'Core-Finance-Service' due to suspicious activity.")
+    proposed_action = st.text_input("Message", value="Emergency Alert from the Cybersecurity Intelligence Unit.")
     
     # Row 4: Metadata/Context (Back to original order)
-    task_metadata = st.text_area("Task Context", value="Detected unusual encryption patterns matching ransomware behavior.")
+    task_metadata = st.text_area("Description", value="A suspicious encryption activity has been detected in the Core-Finance-Service. This pattern matches a potential Ransomware attack. To AUTHORIZE an immediate shutdown of the service to prevent data loss, press 1. To DISREGARD this alert and keep the service running, press 2. Please make your selection now.")
     
     # Row 5: Urgency Level
     urgency = st.radio("Urgency Level", options=["standard", "critical"], horizontal=True)
@@ -69,7 +69,7 @@ if submit_button:
         response = requests.post(GATEWAY_URL, json=payload, timeout=10)
         if response.status_code == 200:
             result = response.json()
-            method = "Microsoft Teams" if urgency == "standard" else "Phone Call/SMS"
+            method = "Microsoft Teams" if urgency == "standard" else "Phone Call"
             
             # Compact Success Message to avoid scrolling after submission
             st.success(f"**Sent!** ID: {result.get('request_id', 'N/A')} | **Target:** {operator_name} | **Method:** {method}")
