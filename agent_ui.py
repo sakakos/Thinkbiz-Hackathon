@@ -2,67 +2,78 @@ import streamlit as st
 import requests
 import os
 
-# Ρυθμίσεις σελίδας
-st.set_page_config(page_title="AI Agent Control Panel", page_icon="🤖")
+# Page Configuration - Wide layout to spread elements horizontally
+st.set_page_config(page_title="Agent Interface", page_icon="🤖", layout="wide")
 
-# --- ΚΡΙΣΙΜΗ ΑΛΛΑΓΗ ΓΙΑ ΔΟCKER ---
-# Αν τρέχει στο Docker, το URL θα είναι http://gateway:8000/api/v1/hitl-request
-# Αν το τρέχεις τοπικά, θα πέσει πίσω στο localhost.
+# Custom CSS to force everything into one screen
+st.markdown("""
+    <style>
+    /* Reduce top padding of the main container */
+    .block-container {padding-top: 1rem; padding-bottom: 0rem;}
+    
+    /* Make text areas and inputs shorter */
+    .stTextArea textarea {height: 70px !important;}
+    .stTextInput input {height: 35px !important;}
+    
+    /* Tighten margins between elements */
+    .element-container {margin-bottom: 0.2rem !important;}
+    div[data-testid="stForm"] {padding: 0.8rem !important; margin-bottom: 0px;}
+    
+    /* Fix radio buttons alignment */
+    div[role="radiogroup"] {margin-top: -10px;}
+    
+    /* Make headers smaller */
+    h1 {font-size: 1.8rem !important; margin-bottom: 0.5rem;}
+    h3 {font-size: 1.2rem !important; margin-bottom: 0.2rem;}
+    </style>
+    """, unsafe_allow_html=True)
+
 GATEWAY_URL = os.getenv("GATEWAY_URL", "http://localhost:8000/api/v1/hitl-request")
 
-st.title("🤖 Dummy AI Agent Interface")
-st.markdown("Χρησιμοποίησε αυτή τη φόρμα για να στείλεις ένα αίτημα στο **HITL Gateway**.")
+st.title("Agent Interface")
 
-# Κύρια Φόρμα
+# Main Form
 with st.form("agent_request_form"):
-    st.subheader("📝 Στοιχεία Αιτήματος")
+    st.subheader("Request Details")
     
-    # Επιλογή Agent
-    agent_name = st.selectbox("Agent Name", ["Finance-Bot", "Refund-Bot", "Support-AI", "Legal-Analyst"])
-    
-    # Στοιχεία Χρήστη & Callback
-    col1, col2 = st.columns(2)
-    with col1:
-        # Προτεινόμενα IDs από τη βάση σου: it_dept, cyber_dept, finance_dept
-        operator_name = st.text_input("Target Operator Username (ID)", value="it_dept")
-    with col2:
+    # Row 1: Agent Name and Callback URL
+    col_a, col_b = st.columns(2)
+    with col_a:
+        agent_name = st.selectbox("Agent Name", ["Finance-Bot", "Refund-Bot", "Support-AI", "Legal-Analyst"])
+    with col_b:
         callback_url = st.text_input("Agent Callback URL", value="https://webhook.site/your-id")
     
-    # Περιγραφή Task
-    task_metadata = st.text_area("Task Context / Metadata", "Ο πελάτης ζητάει ακύρωση παραγγελίας λόγω καθυστέρησης.")
-    proposed_action = st.text_input("Proposed Action", "Ακύρωση παραγγελίας #1234 και επιστροφή χρημάτων.")
+    # Row 2: Target Operator
+    operator_name = st.text_input("Target Department ID", value="it_dept")
     
-    # Κρισιμότητα
-    urgency = st.select_slider("Urgency Level", options=["standard", "critical"])
+    # Row 3: Proposed Action (Back to original order)
+    proposed_action = st.text_input("Proposed Action", value="Shutdown the 'Core-Finance-Service' due to suspicious activity.")
     
-    submit_button = st.form_submit_button(label="🚀 Αποστολή στο Gateway")
+    # Row 4: Metadata/Context (Back to original order)
+    task_metadata = st.text_area("Task Context", value="Detected unusual encryption patterns matching ransomware behavior.")
+    
+    # Row 5: Urgency Level
+    urgency = st.radio("Urgency Level", options=["standard", "critical"], horizontal=True)
+    
+    submit_button = st.form_submit_button(label="Send Request to Gateway", use_container_width=True)
 
-# Λογική Αποστολής
+# Submission Logic
 if submit_button:
     payload = {
-        "agent_name": agent_name,
-        "operator_name": operator_name,
-        "task_metadata": task_metadata,
-        "proposed_action": proposed_action,
-        "urgency": urgency,
-        "callback_url": callback_url
+        "agent_name": agent_name, "operator_name": operator_name,
+        "task_metadata": task_metadata, "proposed_action": proposed_action,
+        "urgency": urgency, "callback_url": callback_url
     }
     
-    with st.spinner("Επικοινωνία με το Gateway..."):
-        try:
-            # Αποστολή στο δυναμικό GATEWAY_URL
-            response = requests.post(GATEWAY_URL, json=payload, timeout=10)
+    try:
+        response = requests.post(GATEWAY_URL, json=payload, timeout=10)
+        if response.status_code == 200:
+            result = response.json()
+            method = "Microsoft Teams" if urgency == "standard" else "Phone Call/SMS"
             
-            if response.status_code == 200:
-                result = response.json()
-                st.success(f"✅ Το αίτημα εστάλη! Request ID: {result.get('request_id')}")
-                st.info(f"🔔 Ειδοποίηση: **{'Teams' if urgency == 'standard' else 'SMS/Voice Call'}** -> **{operator_name}**")
-            else:
-                # Εδώ θα φανεί αν ο χρήστης δεν υπάρχει (404)
-                st.error(f"❌ Σφάλμα Gateway ({response.status_code}): {response.text}")
-        
-        except Exception as e:
-            st.error(f"❌ Αποτυχία σύνδεσης στο Gateway: {str(e)}")
-
-st.divider()
-st.caption(f"Connected to Gateway: {GATEWAY_URL}")
+            # Compact Success Message to avoid scrolling after submission
+            st.success(f"**Sent!** ID: {result.get('request_id', 'N/A')} | **Target:** {operator_name} | **Method:** {method}")
+        else:
+            st.error(f"❌ Error: {response.text}")
+    except Exception as e:
+        st.error(f"❌ Connection Failed: {str(e)}")
