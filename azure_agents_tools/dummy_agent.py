@@ -1,7 +1,8 @@
+
 import requests
 
-GATEWAY_URL = "http://localhost:8000/api/v1/hitl-request"
-
+# Το URL του Railway
+GATEWAY_URL = "https://thinkbiz-hackathon-production.up.railway.app/api/v1/hitl-request"
 payload = {
     "agent_name": "Finance-Bot",
     "operator_name": "giannis",  # Ζητάμε συγκεκριμένα τον Γιάννη!

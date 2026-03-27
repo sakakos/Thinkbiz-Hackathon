@@ -44,13 +44,12 @@ def send_teams_alert(request_id: str, agent_name: str, action: str, webhook_url:
                         {
                             "type": "Action.OpenUrl",
                             "title": "✅ Έγκριση",
-                            # Θα καλεί το νέο GET endpoint που θα φτιάξουμε
-                            "url": f"http://localhost:8000/api/v1/human-response-get?request_id={request_id}&decision=approve"
+                            "url": f"https://thinkbiz-hackathon-production.up.railway.app/api/v1/human-response-get?request_id={request_id}&decision=approve"
                         },
                         {
                             "type": "Action.OpenUrl",
                             "title": "❌ Απόρριψη",
-                            "url": f"http://localhost:8000/api/v1/human-response-get?request_id={request_id}&decision=deny"
+                            "url": f"https://thinkbiz-hackathon-production.up.railway.app/api/v1/human-response-get?request_id={request_id}&decision=deny"
                         }
                     ]
                 }

@@ -68,8 +68,10 @@ async def receive_agent_request(request: AgentTaskRequest):
     print(f"\n[GATEWAY API] 📥 Νέο αίτημα από: {request.agent_name} για τον/την {operator_data['full_name']}")
     
     # Δυναμικό Routing (Περνάμε πλέον τα στοιχεία του operator στον router)
+    # Δυναμικό Routing (Περνάμε πλέον τα στοιχεία του operator στον router)
     if request.urgency == UrgencyLevel.CRITICAL:
-        route_to_voice_sms(request_id, request.agent_name, request.proposed_action, operator_data)
+        # Προστέθηκε το request.task_metadata εδώ:
+        route_to_voice_sms(request_id, request.agent_name, request.task_metadata, request.proposed_action, operator_data)
     else:
         route_to_chat(request_id, request.agent_name, request.proposed_action, operator_data)
         
