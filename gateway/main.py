@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Response
 from pydantic import BaseModel, Field
 from enum import Enum
 from datetime import datetime, timezone
@@ -162,3 +162,59 @@ async def receive_human_decision_get(request_id: str, decision: str, background_
         </body>
     </html>
     """
+
+
+@app.post("/api/voice-response")
+async def voice_response(request: Request, background_tasks: BackgroundTasks, request_id: str = None):
+    """
+    Το endpoint που καλεί το Twilio όταν ο άνθρωπος πατάει ένα πλήκτρο στο κινητό του.
+    """
+    # Διαβάζουμε τα δεδομένα της φόρμας που στέλνει το Twilio
+    form_data = await request.form()
+    digits = form_data.get('Digits')
+    
+    print("\n" + "="*50)
+    print(f"📞 ΕΙΣΕΡΧΟΜΕΝΟ CALLBACK ΑΠΟ ΤΟΝ ΑΝΘΡΩΠΟ (Twilio) - Κουμπί: {digits}")
+    print("="*50)
+
+    # Λογική απόφασης
+    if digits == '1':
+        decision = "approve"
+        response_message = "Action approved. The A.I. agent will proceed. Goodbye."
+    elif digits == '2':
+        decision = "deny"
+        response_message = "Action rejected. The A.I. agent has been stopped. Goodbye."
+    else:
+        decision = "deny"
+        response_message = "Invalid input. The A.I. agent will be notified. Goodbye."
+
+    # Ενημέρωση της κατάστασης (απευθείας στη μνήμη του Gateway)
+    if request_id and request_id in active_requests:
+        state = active_requests[request_id]
+        
+        # Idempotency: Αποτροπή διπλής απάντησης
+        if state["status"] != "resolved":
+            state["status"] = "resolved"
+            state["decided_at"] = datetime.now(timezone.utc).isoformat()
+            state["human_decision"] = decision
+            
+            print(f"[VOICE] 👤 Απόφαση καταγράφηκε: {decision.upper()} για το request {request_id}")
+            
+            # Προετοιμασία του payload και αποστολή στον Agent
+            agent_callback_payload = {
+                "request_id": request_id,
+                "decision": decision,
+                "feedback": "voice_input",
+                "resolved_at": state["decided_at"]
+            }
+            background_tasks.add_task(send_callback_to_agent, state["callback_url"], agent_callback_payload)
+    else:
+        print(f"[VOICE ERROR] Το request_id '{request_id}' δεν βρέθηκε ή έχει λήξει.")
+
+    # Επιστροφή TwiML (XML) οδηγιών στο Twilio
+    twiml_response = f"""
+    <Response>
+        <Say voice="alice" language="en-US">{response_message}</Say>
+    </Response>
+    """
+    return Response(content=twiml_response, media_type="text/xml")
