@@ -10,7 +10,7 @@ OPERATORS = {
     "giannis": {
         "full_name": "Γιάννης Παπαδόπουλος",
         "preferred_channel": "teams",
-        "webhook_url": None,
+        "webhook_url": "https://default075e0cb3752a4320b3676d08b7918c.40.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/84b1fbab338349da97de6423eb8c5724/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=BnfIfL5urrw3vngHyYtssSf9YrnPFA-zxnCkIDruaoc",
         "phone_number": "+306997891734",
     }
 }
@@ -33,7 +33,7 @@ def _normalize_operator(raw: Dict[str, Any], fallback_name: str) -> Optional[Dic
     )
 
     normalized = {
-        "full_name": raw.get("full_name") or raw.get("name") or fallback_name,
+        "full_name": raw.get("name") or fallback_name,
         "preferred_channel": str(preferred_channel).lower(),
         "webhook_url": (
             raw.get("webhook_url")
@@ -41,7 +41,7 @@ def _normalize_operator(raw: Dict[str, Any], fallback_name: str) -> Optional[Dic
             or teams_webhook
             or slack_webhook
         ),
-        "phone_number": raw.get("phone_number") or raw.get("phone") or raw.get("mobile"),
+        "phone_number": raw.get("phone"),
     }
 
     if not normalized["phone_number"] and not normalized["webhook_url"]:
