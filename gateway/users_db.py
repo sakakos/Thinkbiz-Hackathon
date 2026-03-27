@@ -1,0 +1,8 @@
+OPERATORS = {
+    "giannis": {
+        "full_name": "Γιάννης Παπαδόπουλος",
+        "preferred_channel": "teams",
+        "webhook_url": "https://default075e0cb3752a4320b3676d08b7918c.40.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/84b1fbab338349da97de6423eb8c5724/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=BnfIfL5urrw3vngHyYtssSf9YrnPFA-zxnCkIDruaoc", 
+        "phone_number": "+306912345678"
+    }
+}

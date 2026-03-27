@@ -1,34 +1,38 @@
 from gateway.channels.teams import send_teams_alert
-from gateway.channels.phone import trigger_escalation_call
 
-def route_to_chat(request_id: str, agent_name: str, action: str):
+def route_to_chat(request_id: str, agent_name: str, action: str, operator_data: dict):
     """
-    Στέλνει ειδοποίηση σε enterprise chat (π.χ. Microsoft Teams ή Slack).
+    Δρομολογεί το μήνυμα στο κατάλληλο κανάλι βάσει των προτιμήσεων του operator.
     """
-    print(f"\n[ROUTER -> TEAMS] Δρομολόγηση Standard Alert...")
+    channel = operator_data.get("preferred_channel", "teams").lower()
+    webhook_url = operator_data.get("webhook_url")
+    
+    print(f"\n[ROUTER -> {channel.upper()}] Δρομολόγηση Standard Alert...")
     print(f"| Request ID: {request_id}")
     print(f"| Agent: {agent_name} | Ενέργεια: {action}")
     
-    # Πραγματική κλήση της συνάρτησης που στέλνει το Webhook
-    success = send_teams_alert(request_id, agent_name, action)
-    
-    if success:
-        print("[ROUTER] Το αίτημα παραδόθηκε επιτυχώς στο Teams. Αναμονή απάντησης...")
+    if channel == "teams":
+        success = send_teams_alert(request_id, agent_name, action, webhook_url)
+        if success:
+            print("[ROUTER] Το αίτημα παραδόθηκε επιτυχώς στο Teams. Αναμονή απάντησης...")
+        else:
+            print("[ROUTER ERROR] Υπήρξε πρόβλημα με την παράδοση στο Teams.")
+            
+    elif channel == "slack":
+        # Εδώ μελλοντικά θα καλείται η send_slack_alert(..., webhook_url)
+        print("[ROUTER] Προσομοίωση αποστολής στο Slack...")
+        
     else:
-        print("[ROUTER ERROR] Υπήρξε πρόβλημα με την παράδοση στο Teams.")
+        print(f"[ROUTER ERROR] Άγνωστο κανάλι επικοινωνίας: {channel}")
 
-def route_to_voice_sms(request_id: str, agent_name: str, action: str):
+def route_to_voice_sms(request_id: str, agent_name: str, action: str, operator_data: dict):
     """
-    Στέλνει ειδοποίηση μέσω κλήσης ή SMS (π.χ. Twilio ή Azure Communication Services) για κρίσιμα escalations.
+    Στέλνει ειδοποίηση μέσω κλήσης ή SMS για κρίσιμα escalations.
     """
-    print(f"\n[ROUTER -> SMS/VOICE] ⚠️ Αποστολή CRITICAL Alert (Κλήση/SMS).")
+    phone = operator_data.get("phone_number")
+    
+    print(f"\n[ROUTER -> SMS/VOICE] ⚠️ Αποστολή CRITICAL Alert.")
     print(f"| Request ID: {request_id}")
     print(f"| Agent: {agent_name} | Κρίσιμη Ενέργεια: {action}")
-
-    try:
-        trigger_escalation_call()
-        print("[ROUTER] Η κλήση escalation ξεκίνησε επιτυχώς.")
-    except Exception as e:
-        print(f"[ROUTER ERROR] Αποτυχία voice escalation: {e}")
-        print("[ROUTER] Fallback σε Teams για να μη χαθεί το critical request.")
-        send_teams_alert(request_id, agent_name, f"[CRITICAL FALLBACK] {action}")
+    print(f"| Τηλέφωνο Επικοινωνίας: {phone}")
+    print(f"| Προσομοίωση κλήσης στο {phone}...")

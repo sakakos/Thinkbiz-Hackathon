@@ -1,16 +1,11 @@
-import os
 import requests
 
-def send_teams_alert(request_id: str, agent_name: str, action: str):
+def send_teams_alert(request_id: str, agent_name: str, action: str, webhook_url: str):
     """
-    Δημιουργεί και στέλνει μια Adaptive Card στο Microsoft Teams.
+    Δημιουργεί και στέλνει μια Adaptive Card στο Microsoft Teams του εκάστοτε χρήστη.
     """
-    webhook_url = os.getenv("TEAMS_WEBHOOK_URL")
-    gateway_base_url = os.getenv("GATEWAY_BASE_URL", "http://localhost:8000").rstrip("/")
-    human_response_url = f"{gateway_base_url}/api/v1/human-response"
-    
     if not webhook_url:
-        print(f"[TEAMS MOCK] 🔔 Ειδοποίηση για {agent_name}: {action} (Δεν βρέθηκε Webhook URL)")
+        print(f"[TEAMS ERROR] 🔔 Δεν βρέθηκε Webhook URL για αυτόν τον χρήστη.")
         return False
 
     # Το JSON payload (Adaptive Card) με τα κουμπιά
@@ -47,20 +42,15 @@ def send_teams_alert(request_id: str, agent_name: str, action: str):
                     ],
                     "actions": [
                         {
-                            "type": "Action.Http",
+                            "type": "Action.OpenUrl",
                             "title": "✅ Έγκριση",
-                            "method": "POST",
-                            "url": human_response_url,
-                            "body": f'{{"request_id": "{request_id}", "decision": "approve", "feedback": ""}}',
-                            "headers": [{"name": "Content-Type", "value": "application/json"}]
+                            # Θα καλεί το νέο GET endpoint που θα φτιάξουμε
+                            "url": f"http://localhost:8000/api/v1/human-response-get?request_id={request_id}&decision=approve"
                         },
                         {
-                            "type": "Action.Http",
+                            "type": "Action.OpenUrl",
                             "title": "❌ Απόρριψη",
-                            "method": "POST",
-                            "url": human_response_url,
-                            "body": f'{{"request_id": "{request_id}", "decision": "deny", "feedback": ""}}',
-                            "headers": [{"name": "Content-Type", "value": "application/json"}]
+                            "url": f"http://localhost:8000/api/v1/human-response-get?request_id={request_id}&decision=deny"
                         }
                     ]
                 }
@@ -71,7 +61,6 @@ def send_teams_alert(request_id: str, agent_name: str, action: str):
     try:
         response = requests.post(webhook_url, json=card_payload, timeout=5)
         response.raise_for_status()
-        print(f"[TEAMS] Επιτυχής αποστολή ειδοποίησης για το request {request_id}")
         return True
     except Exception as e:
         print(f"[TEAMS ERROR] Αποτυχία αποστολής στο Teams: {e}")
