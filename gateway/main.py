@@ -7,7 +7,7 @@ import requests
 from fastapi.responses import HTMLResponse
 
 from gateway.state import active_requests
-from gateway.users_db import OPERATORS
+from gateway.users_db import get_operator
 from gateway.channels.router import route_to_chat, route_to_voice_sms
 
 app = FastAPI(title="HITL Asynchronous Message Broker")
@@ -44,12 +44,11 @@ def send_callback_to_agent(callback_url: str, payload: dict):
 
 @app.post("/api/v1/hitl-request")
 async def receive_agent_request(request: AgentTaskRequest):
-    # Έλεγχος αν ο χρήστης υπάρχει στη βάση μας
+    # Έλεγχος αν ο χρήστης υπάρχει στη βάση μας (remote DB ή local fallback)
     operator_username = request.operator_name.lower()
-    if operator_username not in OPERATORS:
+    operator_data = get_operator(operator_username)
+    if not operator_data:
         raise HTTPException(status_code=404, detail=f"Operator '{request.operator_name}' not found in database.")
-        
-    operator_data = OPERATORS[operator_username]
     
     request_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()

@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: thinkbiz-hitl-gateway
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      MONGODB_DB_NAME: ${MONGODB_DB_NAME:-hitl}
+      MONGODB_OPERATORS_COLLECTION: ${MONGODB_OPERATORS_COLLECTION:-operators}
+    restart: unless-stopped

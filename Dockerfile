@@ -6,6 +6,10 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+# MongoDB config (set MONGODB_URI at runtime with -e or docker compose)
+ENV MONGODB_DB_NAME=hitl
+ENV MONGODB_OPERATORS_COLLECTION=operators
+
 # Set the working directory in the container
 WORKDIR /code
 

@@ -1,4 +1,5 @@
 from gateway.channels.teams import send_teams_alert
+from gateway.channels.phone import trigger_escalation_call
 
 def route_to_chat(request_id: str, agent_name: str, action: str, operator_data: dict):
     """
@@ -35,4 +36,11 @@ def route_to_voice_sms(request_id: str, agent_name: str, action: str, operator_d
     print(f"| Request ID: {request_id}")
     print(f"| Agent: {agent_name} | Κρίσιμη Ενέργεια: {action}")
     print(f"| Τηλέφωνο Επικοινωνίας: {phone}")
-    print(f"| Προσομοίωση κλήσης στο {phone}...")
+
+    success = trigger_escalation_call()
+    if success:
+        print(f"| Η κλήση ξεκίνησε επιτυχώς προς {phone}.")
+        return
+
+    print("| [ROUTER ERROR] Η κλήση δεν εκτελέστηκε. Fallback σε chat κανάλι...")
+    route_to_chat(request_id, agent_name, f"[CRITICAL FALLBACK] {action}", operator_data)

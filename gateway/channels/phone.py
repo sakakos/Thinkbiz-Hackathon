@@ -9,7 +9,7 @@ TWILIO_AUTH_TOKEN = '421d43e916bffe4d837fa726ae4002cb'              # Βάλε �
 
 # === 2. ΟΙ ΤΗΛΕΦΩΝΙΚΟΙ ΑΡΙΘΜΟΙ ===
 # Πρέπει να έχουν τον κωδικό χώρας μπροστά, π.χ., +30 για Ελλάδα ή +1 για ΗΠΑ
-TWILIO_PHONE_NUMBER = '++14788886661'    # Ο αριθμός που σου έδωσε το Twilio
+TWILIO_PHONE_NUMBER = '+14788886661'    # Ο αριθμός που σου έδωσε το Twilio
 DESTINATION_PHONE_NUMBER = '+306997891734' # Το ΔΙΚΟ ΣΟΥ verified κινητό
 
 # Αρχικοποίηση του Twilio Client
@@ -30,11 +30,13 @@ def trigger_escalation_call():
             # Λέει στο Twilio να διαβάσει το μήνυμα και να περιμένει το πλήκτρο.
             url='https://handler.twilio.com/twiml/EHbf2731a614fd7bdc0026e6750eb4c048'
         )
-        print(f"✅ Επιτυχία! Η κλήση ξεκίνησε. Call SID: {call.sid}")
+        print(f"Επιτυχία! Η κλήση ξεκίνησε. Call SID: {call.sid}")
         print("Περιμένω τον άνθρωπο να απαντήσει...")
+        return True
         
     except Exception as e:
         print(f"❌ Σφάλμα κατά την κλήση: {e}")
+        return False
 
 # Εκτέλεση της συνάρτησης για δοκιμή
 if __name__ == "__main__":
